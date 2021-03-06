@@ -1,0 +1,29 @@
+# These snippets were used to go through setting up the data directory with something other than the space on my SSD allocated for running the VM.
+# In this situation, I added 2TB of storage to be used as the data directory location. 
+
+# After adding storage to the VM, use fdisk to partition disk. Use default partitions. Use lsblk to figure out which drive you're dealing with -- in this case, it's /dev/sdb
+$ sudo fdisk /dev/sdb
+
+# After going through fdisk, you're going to need to format the disk with mkfs. We'll be formatting to typical ext4. 
+$ sudo mkfs.ext4 /dev/sdb1
+ 
+# You'll want to make sure all data and metadata in the current data point are moved to the new storage. So, we'll mount it (mount command),
+# copy the data (cp command), then unmount it (umount).
+$ sudo mount /dev/sdb1 /mnt
+
+# This command assumes you're using the nextcloud snap, whose data directory is in /var/snap/nextcloud/common/nextcloud. If you're doing
+# another kind of installation, you'll have to figure out the data directory location in the config.php file. Consult Nextcloud documentation if need be. 
+$ sudo cp -rT /var/snap/nextcloud/common/nextcloud/data /mnt
+
+# sudo umount /dev/sdb1 /mnt
+
+# Now, you will have to add an entry for the /dev/sdb1 in your /etc/fstab file,
+# so it will be mounted automatically on the /var/snap/nextcloud/common/nextcloud/data mount point on system boot.
+# Use this command to find out the UUID of the drive. Copy and/or write down the UUID. Double-check it to make sure you have it correct (it's long).
+$ sudo blkid /dev/sdb1
+
+# Open fstab folder. Fstab helps determine what mountpoints are where for each drive/partition.
+$ sudo nano /etc/fstab
+
+# Create an entry with the following
+UUID=[Insert UUID number you copied/wrote down here] /var/snap/nextcloud/common/nextcloud/data ext4 defaults 0 0
